@@ -6,7 +6,7 @@
 
 ## Integrantes
 <ul>
-    <li>Becheti Daniel</li>
+    <li>Becchetti Daniel</li>
     <li>Diaz Nestor</li>
     <li>Orihuela Elias</li>
     <li>Rey Lucas</li>
