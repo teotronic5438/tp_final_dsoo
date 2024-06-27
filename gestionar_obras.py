@@ -2,11 +2,10 @@ from abc import ABC, abstractmethod
 from abc import ABCMeta
 import pandas as pd
 
-df = pd.read_csv('observatorio-de-obras-urbanas.csv')
-
 class GestionarObra(metaclass=ABCMeta):
     @abstractmethod
     def extraer_datos(self):
+        df = pd.read_csv('observatorio-de-obras-urbanas.csv')
         pass
 
     @abstractmethod
