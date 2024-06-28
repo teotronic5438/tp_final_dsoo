@@ -5,8 +5,7 @@ import pandas as pd
 class GestionarObra(metaclass=ABCMeta):
     @abstractmethod
     def extraer_datos(self):
-        df = pd.read_csv('observatorio-de-obras-urbanas.csv')
-        pass
+        df = pd.read_csv('observatorio-de-obras-urbanas.csv', header= None)
 
     @abstractmethod
     def conectar_db(self):
