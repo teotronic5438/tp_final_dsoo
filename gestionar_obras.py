@@ -125,14 +125,14 @@ class GestionarObra(ABC):
     @classmethod
     @abstractmethod
     def cargar_datos(cls, df):
-        #Obtener los valores únicos (no repetidos) de una columna
-        # Diccionario de valores únicos por columna de interés
-
-        # Validar si hay datos en la tabla Obra antes de proceder
+        # Valido si hay datos en la tabla Obra antes de proceder
         if Obra.select().exists():
             print("La tabla Obra ya contiene datos.")
             return
+        
 
+        #Obtener los valores únicos (no repetidos) de una columna
+        # Diccionario de valores únicos por columna de interés
         valores_unicos = {
             'etapa': df['etapa'].unique(),
             'tipo': df['tipo'].unique(),
