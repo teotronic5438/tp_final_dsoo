@@ -73,7 +73,11 @@ class GestionarObra(ABC):
         #Eliminar valores NA o NaN (nulos o no disponibles) de las columnas usadas para los indicadores
         df.dropna(subset=columnas_a_verificar, axis = 0, inplace = True)
 
+        # Faltaria agregar limpieza de campos con acento, sin acento, mal escritos
 
+        # replace = {
+        #     "licitacion" : "lictación"
+        # }
 
         # 2) Hago la conversion de las columnas numéricas segun tipo y relleno
         conversiones = {
@@ -86,11 +90,6 @@ class GestionarObra(ABC):
             "mano_obra": "integer"
         }
 
-        # Faltaria agregar limpieza de campos con acento, sin acento, mal escritos
-
-        # replace = {
-        #     "licitacion" : "lictación"
-        # }
 
         # 2.1) Itero las columnas del DataFrame para el rellenado
         for columna in df:
@@ -228,7 +227,7 @@ class GestionarObra(ABC):
                 new_fecha_inicio = input("Ingrese la fecha de inicio (dd-mm-yyyy): ")
                 new_fecha_fin_inicial = input("Ingrese la fecha de fin inicial (dd-mm-yyyy): ")
                 new_plazo_meses = int(input("Ingrese el plazo en meses (entero): "))
-                new_porcentaje_avance = float(input("Ingrese el porcentaje de avance: "))
+                new_porcentaje_avance = float(input("Ingrese el porcentaje de avance de la obra: "))
                 new_imagen_1 = "N/a"
                 new_imagen_2 = "N/a"
                 new_imagen_3 = "N/a"
@@ -236,42 +235,83 @@ class GestionarObra(ABC):
                 new_licitacion_anio = int(input("Ingrese el año de licitacion(ejemplo: 2024): "))
                 new_nro_contratacion = input("Ingrese el número de contratación: ")
                 new_cuit_contratista = input("Ingrese el CUIT del contratista: ")
-                new_beneficiarios = input("Ingrese el número de beneficiarios: ")
+                new_beneficiarios = input("Ingrese quienes seran los beneficiarios: ")
                 new_mano_obra = int(input("Ingrese la cantidad de mano de obra (entero): "))
                 new_compromiso = input("Ingrese el compromiso: ")
-                new_destacada = input("Es una obra destacada? (si/no): ").lower() == 'si'
-                new_ba_elige = input("Es una obra de BA Elige? (si/no): ").lower() == 'si'
-                new_link_interno = input("Ingrese el link interno: ")
-                new_pliego_descarga = input("Ingrese el link para descargar el pliego: ")
+                new_destacada = input("Es una obra destacada? (si/no): ").lower()
+                new_ba_elige = input("Es una obra de BA Elige? (si/no): ").lower()
+                new_link_interno = "link no disponible"
+                new_pliego_descarga = "link de pliego no disponible"
                 new_expediente_numero = input("Ingrese el número del expediente: ")
-                new_estudio_ambiental_descarga = input("Ingrese el link para descargar el estudio ambiental: ")
+                new_estudio_ambiental_descarga = "link de estudio ambiental no disponible"
 
                 # Ingresar otros valores necesarios para crear una obra
-                new_etapa_nombre = input("Ingrese la etapa de la obra: ")
-                etapa = Etapa.get(Etapa.nombre == new_etapa_nombre)
+                new_etapa_nombre = input("Ingrese la etapa de la obra: ").capitalize()
+                try:
+                    etapa = Etapa.get(Etapa.nombre == new_etapa_nombre)
+                except DoesNotExist:
+                    new_etapa_nombre = input("ETAPA NUEVA. Confirme la etapa de la obra: ").capitalize()
+                    Etapa.create(nombre=new_etapa_nombre)
+                    etapa = Etapa.get(Etapa.nombre == new_etapa_nombre)
                 
-                new_tipo_nombre = input("Ingrese el tipo de la obra: ")
-                tipo = Tipo.get(Tipo.nombre == new_tipo_nombre)
+                new_tipo_nombre = input("Ingrese el tipo de la obra: ").capitalize()
+                try:
+                    tipo = Tipo.get(Tipo.nombre == new_tipo_nombre)
+                except DoesNotExist:
+                    new_tipo_nombre = input("TIPO DE OBRA NUEVA. Confirme el tipo de la obra: ").capitalize()
+                    Tipo.create(nombre=new_tipo_nombre)
+                    tipo = Tipo.get(Tipo.nombre == new_tipo_nombre)
                 
-                new_area_responsable_nombre = input("Ingrese el área responsable de la obra: ")
-                area_responsable = AreaResponsable.get(AreaResponsable.nombre == new_area_responsable_nombre)
-                
-                new_comuna_numero = int(input("Ingrese la comuna de la obra: "))
-                comuna = Comuna.get(Comuna.nombre == new_comuna_numero)
-                
-                new_barrio_nombre = input("Ingrese el barrio de la obra: ")
-                barrio = Barrio.get(Barrio.nombre == new_barrio_nombre)
-                
-                new_licitacion_empresa_nombre = input("Ingrese la empresa de licitación: ")
-                licitacion_empresa = LicitacionEmpresa.get(LicitacionEmpresa.nombre == new_licitacion_empresa_nombre)
-                
-                new_contratacion_tipo_nombre = input("Ingrese el tipo de contratación: ")
-                contratacion_tipo = ContratacionTipo.get(ContratacionTipo.nombre == new_contratacion_tipo_nombre)
-                
-                new_financiamiento_nombre = input("Ingrese el financiamiento de la obra: ")
-                financiamiento = Financiamiento.get(Financiamiento.nombre == new_financiamiento_nombre)
+                new_area_responsable_nombre = input("Ingrese el área responsable de la obra: ").capitalize()
+                try:
+                    area_responsable = AreaResponsable.get(AreaResponsable.nombre == new_area_responsable_nombre)
+                except DoesNotExist:
+                    new_area_responsable_nombre = input("AREA RESPONSABLE NUEVO. Confirme el area de la obra: ").capitalize()
+                    AreaResponsable.create(nombre=new_area_responsable_nombre)
+                    area_responsable = AreaResponsable.get(AreaResponsable.nombre == new_area_responsable_nombre)
 
-                            # Crear nueva instancia de Obra
+                new_comuna_numero = int(input("Ingrese la comuna de la obra: "))
+                try:
+                    comuna = Comuna.get(Comuna.nombre == new_comuna_numero)
+                except DoesNotExist:
+                    # En este caso como las comunas estan precargadas las 15, solo debe seleccionar la correcta
+                    new_comuna_numero = input("Verifique la comuna ingresada (del 1 al 15)")
+                    comuna = Comuna.get(Comuna.nombre == new_comuna_numero)
+                
+                new_barrio_nombre = input("Ingrese el barrio de la obra: ").capitalize()
+                try:
+                    barrio = Barrio.get(Barrio.nombre == new_barrio_nombre)
+                except DoesNotExist:
+                    new_barrio_nombre = input("BARRIO NUEVO INGRESADO. Confirme el barrio de la obra: ").capitalize()
+                    Barrio.create(nombre = new_barrio_nombre)
+                    barrio = Barrio.get(Barrio.nombre == new_barrio_nombre)
+                
+                new_licitacion_empresa_nombre = input("Ingrese la empresa de licitación: ").capitalize()
+                try:
+                    licitacion_empresa = LicitacionEmpresa.get(LicitacionEmpresa.nombre == new_licitacion_empresa_nombre)
+                except DoesNotExist:
+                    new_licitacion_empresa_nombre = input("LICITACION NUEVA INGRESADA. Confirme la empresa de licitación: ").capitalize()
+                    LicitacionEmpresa.create(nombre = new_licitacion_empresa_nombre)
+                    licitacion_empresa = LicitacionEmpresa.get(LicitacionEmpresa.nombre == new_licitacion_empresa_nombre)
+                
+                new_contratacion_tipo_nombre = input("Ingrese el tipo de contratación: ").capitalize()
+                try:
+                    contratacion_tipo = ContratacionTipo.get(ContratacionTipo.nombre == new_contratacion_tipo_nombre)
+                except DoesNotExist:
+                    new_contratacion_tipo_nombre = input("TIPO CONTRATACION NUEVO INGRESADO. Confirme el tipo de contratacion: ").capitalize()
+                    ContratacionTipo.create(nombre = new_contratacion_tipo_nombre)
+                    contratacion_tipo = ContratacionTipo.get(ContratacionTipo.nombre == new_contratacion_tipo_nombre)
+                
+                new_financiamiento_nombre = input("Ingrese el financiamiento de la obra: ").capitalize()
+                try:
+                    financiamiento = Financiamiento.get(Financiamiento.nombre == new_financiamiento_nombre)
+                except DoesNotExist:
+                    new_financiamiento_nombre = input("TIPO CONTRATACION NUEVO INGRESADO. Confirme el tipo de contratacion: ").capitalize()
+                    Financiamiento.create(nombre = new_financiamiento_nombre)
+                    Financiamiento.get(Financiamiento.nombre == new_financiamiento_nombre)
+                    financiamiento = Financiamiento.get(Financiamiento.nombre == new_financiamiento_nombre)
+
+                # Crear nueva instancia de Obra
                 nueva_obra = Obra.create(
                     entorno=new_entorno,
                     nombre=new_nombre,
@@ -364,4 +404,5 @@ if __name__ == "__main__":
     Implementacion.conectar_db()
     Implementacion.mapear_orm()
     data_set = Implementacion.limpiar_datos(data_set)
-    Implementacion.cargar_datos(data_set)
+    # Implementacion.cargar_datos(data_set)
+    Implementacion.nueva_obra()
