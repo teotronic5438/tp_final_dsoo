@@ -144,7 +144,7 @@ else:
 sqlite_db.close()
 '''
 
-
+'''
 class Obra:
 
     def nuevo_proyecto():
@@ -174,4 +174,4 @@ class Obra:
     def rescindir_obra():
         pass
 
-    
+'''

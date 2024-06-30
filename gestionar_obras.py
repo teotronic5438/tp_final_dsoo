@@ -6,7 +6,7 @@ import pandas as pd
 
 # Clase abstracta para gestionar obras
 class GestionarObra(ABC):
-    archivo_csv = "../observatorio-de-obras-urbanas.csv"
+    archivo_csv = "./observatorio-de-obras-urbanas.csv"
 
     @classmethod
     @abstractmethod
