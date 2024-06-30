@@ -46,7 +46,7 @@ class AreaResponsable(BaseModel):
 
 # Tabla para la comuna (relacionada por foreign key)
 class Comuna(BaseModel):
-    nombre = CharField(unique=True)
+    nombre = IntegerField(unique=True)
     def __str__(self):
         return self.nombre
     class Meta:
@@ -89,19 +89,19 @@ class Financiamiento(BaseModel):
 
 # Modelo principal para los datos de la obra
 class Obra(BaseModel):
-    id = AutoField()
+    id = AutoField(primary_key=True)
     entorno = CharField()
     nombre = CharField()
     etapa = ForeignKeyField(Etapa, backref='etapa')
     tipo = ForeignKeyField(Tipo, backref='tipo')
     area_responsable = ForeignKeyField(AreaResponsable, backref='area_responsable')
     descripcion = TextField()
-    monto_contrato = DecimalField(max_digits=10, decimal_places=2)
+    monto_contrato = FloatField()
     comuna = ForeignKeyField(Comuna, backref='comuna')
     barrio = ForeignKeyField(Barrio, backref='barrio')
     direccion = CharField()
-    lat = FloatField()
-    lng = FloatField()
+    lat = CharField()
+    lng = CharField()
     fecha_inicio = DateField()
     fecha_fin_inicial = DateField()
     plazo_meses = IntegerField()
@@ -115,11 +115,11 @@ class Obra(BaseModel):
     contratacion_tipo = ForeignKeyField(ContratacionTipo, backref='contratacion_tipo')
     nro_contratacion = CharField()
     cuit_contratista = CharField()
-    beneficiarios = IntegerField()
+    beneficiarios = CharField()
     mano_obra = IntegerField()
     compromiso = TextField()
-    destacada = BooleanField()
-    ba_elige = BooleanField()
+    destacada = TextField()
+    ba_elige = TextField()
     link_interno = CharField()
     pliego_descarga = CharField()
     expediente_numero = CharField()
