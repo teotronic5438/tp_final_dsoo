@@ -24,6 +24,7 @@ class GestionarObra(ABC):
             # Nota a memoria, el archivo trae una columna vacia, se restringe a las 36 de estructura
             df = pd.read_csv(cls.archivo_csv, delimiter=';', usecols=columnas_validas, encoding='ISO-8859-1')
             # df = pd.read_csv(cls.archivo_csv, sep=";", encoding='ISO-8859-1')
+            # nota a memoria:     campo='Urbanización'.encode('ISO-8859-1').decode('utf-8'), antes de cargar bbdd
 
         except FileNotFoundError as e:
             print("Error al conectar con el dataset.", e)
@@ -85,7 +86,13 @@ class GestionarObra(ABC):
             "mano_obra": "integer"
         }
 
-        # 2.1) Itero las columnas del DataFrame
+        # Faltaria agregar limpieza de campos con acento, sin acento, mal escritos
+
+        # replace = {
+        #     "licitacion" : "lictación"
+        # }
+
+        # 2.1) Itero las columnas del DataFrame para el rellenado
         for columna in df:
             # Convierto las columnas numéricas según el tipo especificado en conversiones
             if columna in conversiones:
@@ -97,7 +104,7 @@ class GestionarObra(ABC):
                     df[columna] = df[columna].fillna(-1)
                 elif columna not in columnas_a_verificar:
                     if df[columna].dtype == "object":
-                        df[columna] = df[columna].fillna("N/A")
+                        df[columna] = df[columna].fillna("no disponible")
 
         # Forzar la conversión de plazo_meses y mano de obra a tipo entero (pandas los hace float por tener textos)
         df["plazo_meses"] = df["plazo_meses"].astype(int)
@@ -203,63 +210,114 @@ class GestionarObra(ABC):
                 )
             except IntegrityError as e:
                 print("Error al insertar un nuevo registro en la tabla viajes.", e)
-            # print(tipo_etapa)
-
-
         print("Datos cargados en las tablas lookup exitosamente.")
-        '''
-        
- 
-        columnas_interes = ['etapa', 'tipo', 'area_responsable', 'comuna', 'barrio', 
-                    'licitacion_oferta_empresa', 'contratacion_tipo', 'financiamiento']
 
-        valores_unicos = {}
-
-        # Iterar sobre las columnas de interés
-        for columna in columnas_interes:
-            valores_unicos[columna] = list(df[columna].unique())
-
-        for elem, valores in valores_unicos:
-            print("Elemento:", elem)
-            try:
-                if elem == 'etapa':
-                    print(elem, valores)
-                elif elem == 'tipo':
-                    pass
-                elif elem == 'area_responsable':
-                    pass
-                elif elem == 'comuna':
-                    pass
-                elif elem == 'barrio':
-                    pass
-                elif elem == 'licitacion_oferta_empresa':
-                    pass
-                elif elem == 'contratacion_tipo':
-                    pass
-                elif elem == 'financiamiento':
-                    pass
-            except IntegrityError as e:
-                print("Error al insertar un nuevo registro en la tabla tipos_transporte.", e)
-    print("Se han persistido los tipos de transporte en la BD.")
-'''
-'''
-    nota a memoria:     campo='Urbanización'.encode('ISO-8859-1').decode('utf-8'), antes de cargar bbdd
-    es decir al leer el csv lo leo como ISO-8859-1 pero al cargarlo a la base de datos lo paso a UTF-8
-'''
-
-'''
     @classmethod
     @abstractmethod
-    def cargar_datos(cls, df):
-        # Método para persistir los datos de las obras en la base de datos relacional SQLite
-        for _, row in df.iterrows():
-            # Ejemplo de creación de instancia de Obra y guardado en la base de datos
-            obra = Obra.create(
-                entorno=row['entorno'],
-                nombre=row['nombre'],
-                # Asignar otros campos según la estructura de tu dataframe y modelos ORM
-            )
-            obra.save()
+    def nueva_obra(cls):
+        # Método para crear una nueva instancia de Obra con valores ingresados por teclado
+        while True:
+            try:
+                new_entorno = input("Ingrese el entorno de la obra: ")
+                new_nombre = input("Ingrese el nombre de la obra: ")
+                new_descripcion = input("Ingrese la descripción de la obra: ")
+                new_monto_contrato = float(input("Ingrese el monto del contrato: "))
+                new_direccion = input("Ingrese la dirección de la obra: ")
+                new_lat = input("Ingrese la latitud: ")
+                new_lng = input("Ingrese la longitud: ")
+                new_fecha_inicio = input("Ingrese la fecha de inicio (dd-mm-yyyy): ")
+                new_fecha_fin_inicial = input("Ingrese la fecha de fin inicial (dd-mm-yyyy): ")
+                new_plazo_meses = int(input("Ingrese el plazo en meses (entero): "))
+                new_porcentaje_avance = float(input("Ingrese el porcentaje de avance: "))
+                new_imagen_1 = "N/a"
+                new_imagen_2 = "N/a"
+                new_imagen_3 = "N/a"
+                new_imagen_4 = "N/a"
+                new_licitacion_anio = int(input("Ingrese el año de licitacion(ejemplo: 2024): "))
+                new_nro_contratacion = input("Ingrese el número de contratación: ")
+                new_cuit_contratista = input("Ingrese el CUIT del contratista: ")
+                new_beneficiarios = input("Ingrese el número de beneficiarios: ")
+                new_mano_obra = int(input("Ingrese la cantidad de mano de obra (entero): "))
+                new_compromiso = input("Ingrese el compromiso: ")
+                new_destacada = input("Es una obra destacada? (si/no): ").lower() == 'si'
+                new_ba_elige = input("Es una obra de BA Elige? (si/no): ").lower() == 'si'
+                new_link_interno = input("Ingrese el link interno: ")
+                new_pliego_descarga = input("Ingrese el link para descargar el pliego: ")
+                new_expediente_numero = input("Ingrese el número del expediente: ")
+                new_estudio_ambiental_descarga = input("Ingrese el link para descargar el estudio ambiental: ")
+
+                # Ingresar otros valores necesarios para crear una obra
+                new_etapa_nombre = input("Ingrese la etapa de la obra: ")
+                etapa = Etapa.get(Etapa.nombre == new_etapa_nombre)
+                
+                new_tipo_nombre = input("Ingrese el tipo de la obra: ")
+                tipo = Tipo.get(Tipo.nombre == new_tipo_nombre)
+                
+                new_area_responsable_nombre = input("Ingrese el área responsable de la obra: ")
+                area_responsable = AreaResponsable.get(AreaResponsable.nombre == new_area_responsable_nombre)
+                
+                new_comuna_numero = int(input("Ingrese la comuna de la obra: "))
+                comuna = Comuna.get(Comuna.nombre == new_comuna_numero)
+                
+                new_barrio_nombre = input("Ingrese el barrio de la obra: ")
+                barrio = Barrio.get(Barrio.nombre == new_barrio_nombre)
+                
+                new_licitacion_empresa_nombre = input("Ingrese la empresa de licitación: ")
+                licitacion_empresa = LicitacionEmpresa.get(LicitacionEmpresa.nombre == new_licitacion_empresa_nombre)
+                
+                new_contratacion_tipo_nombre = input("Ingrese el tipo de contratación: ")
+                contratacion_tipo = ContratacionTipo.get(ContratacionTipo.nombre == new_contratacion_tipo_nombre)
+                
+                new_financiamiento_nombre = input("Ingrese el financiamiento de la obra: ")
+                financiamiento = Financiamiento.get(Financiamiento.nombre == new_financiamiento_nombre)
+
+                            # Crear nueva instancia de Obra
+                nueva_obra = Obra.create(
+                    entorno=new_entorno,
+                    nombre=new_nombre,
+                    descripcion=new_descripcion,
+                    monto_contrato=new_monto_contrato,
+                    direccion=new_direccion,
+                    lat=new_lat,
+                    lng=new_lng,
+                    fecha_inicio=new_fecha_inicio,
+                    fecha_fin_inicial=new_fecha_fin_inicial,
+                    plazo_meses=new_plazo_meses,
+                    porcentaje_avance=new_porcentaje_avance,
+                    imagen_1=new_imagen_1,
+                    imagen_2=new_imagen_2,
+                    imagen_3=new_imagen_3,
+                    imagen_4=new_imagen_4,
+                    licitacion_anio = new_licitacion_anio,
+                    nro_contratacion=new_nro_contratacion,
+                    cuit_contratista=new_cuit_contratista,
+                    beneficiarios=new_beneficiarios,
+                    mano_obra=new_mano_obra,
+                    compromiso=new_compromiso,
+                    destacada=new_destacada,
+                    ba_elige=new_ba_elige,
+                    link_interno=new_link_interno,
+                    pliego_descarga=new_pliego_descarga,
+                    expediente_numero=new_expediente_numero,
+                    estudio_ambiental_descarga=new_estudio_ambiental_descarga,
+                    etapa=etapa,
+                    tipo=tipo,
+                    area_responsable=area_responsable,
+                    comuna=comuna,
+                    barrio=barrio,
+                    licitacion_oferta_empresa=licitacion_empresa,
+                    contratacion_tipo=contratacion_tipo,
+                    financiamiento=financiamiento
+                )
+                nueva_obra.save()
+                return nueva_obra
+            except DoesNotExist as e:
+                print(f"Error: {e}. Intente nuevamente.")
+            except Exception as e:
+                print(f"Ocurrió un error: {e}. Intente nuevamente.")
+    
+
+'''
 
     @classmethod
     @abstractmethod
