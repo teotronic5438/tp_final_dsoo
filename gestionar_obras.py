@@ -67,18 +67,14 @@ class GestionarObra(ABC):
         # 1) Primero vamos a limpiar los campos vacios de las columnas necesarias para los indicadores
 
         # NOTA A PROFESOR: mano_obra me baja de 1325 a 335 registros y elimina una cantidad importante de datos
-        # EN CASO DE QUERER USAR DESCOMENTAR Y COMENTAR OTRA LINEA
-        # columnas_a_verificar = ['etapa', 'tipo', 'area_responsable', 'monto_contrato', 'comuna', 'barrio', 'plazo_meses', 'porcentaje_avance', 'fecha_inicio', 'fecha_fin_inicial']
         columnas_a_verificar = ['etapa', 'tipo', 'area_responsable', 'monto_contrato', 'comuna', 'barrio', 'plazo_meses', 'porcentaje_avance', 'fecha_inicio', 'fecha_fin_inicial', 'mano_obra']
 
         #Eliminar valores NA o NaN (nulos o no disponibles) de las columnas usadas para los indicadores
         df.dropna(subset=columnas_a_verificar, axis = 0, inplace = True)
-        # Aplico capitalize a todo el DataFrame
-        for columna in df.columns:
-            if df[columna].dtype == 'object':  # Verifica si la columna es de tipo string
-                df[columna] = df[columna].str.capitalize()
 
-        # 2) Hago la conversion de las columnas numéricas segun tipo y relleno las demas
+
+
+        # 2) Hago la conversion de las columnas numéricas segun tipo y relleno
         conversiones = {
             "id": "integer",
             "monto_contrato": "float",
@@ -97,7 +93,7 @@ class GestionarObra(ABC):
 
             # Relleno los valores nulos (NaN) con el contenido N/A o no disponible (consultado con el profesor)
             if columna in conversiones.keys():
-                df[columna].fillna(0, inplace=True)
+                df[columna].fillna(-1, inplace=True)
             elif columna not in columnas_a_verificar:
                 if df[columna].dtype == "object":
                     df[columna].fillna("N/A", inplace=True)
@@ -108,8 +104,14 @@ class GestionarObra(ABC):
         df["comuna"] = df["comuna"].astype(int)
         df["licitacion_anio"] = df["licitacion_anio"].astype(int)
 
+        # Aplico capitalize a todo el DataFrame si es de tipo string
+        for columna in df:
+            if df[columna].dtype == 'object': 
+                df[columna] = df[columna].str.capitalize()
+
         # Muestra el dataframe limpio
         print(df['financiamiento'].unique())
+        print(df['comuna'].unique())
         df.to_csv('./csv_limpiado.csv', index=False, sep=';')
         return df
     
