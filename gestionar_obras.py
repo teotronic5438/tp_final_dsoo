@@ -126,7 +126,13 @@ class GestionarObra(ABC):
     @abstractmethod
     def cargar_datos(cls, df):
         #Obtener los valores únicos (no repetidos) de una columna
-                # Diccionario de valores únicos por columna de interés
+        # Diccionario de valores únicos por columna de interés
+
+        # Validar si hay datos en la tabla Obra antes de proceder
+        if Obra.select().exists():
+            print("La tabla Obra ya contiene datos.")
+            return
+
         valores_unicos = {
             'etapa': df['etapa'].unique(),
             'tipo': df['tipo'].unique(),
@@ -356,33 +362,18 @@ class GestionarObra(ABC):
             except Exception as e:
                 print(f"Ocurrió un error: {e}. Intente nuevamente.")
     
-
-'''
-
     @classmethod
     @abstractmethod
-    def nueva_obra(cls):
-        # Método para crear una nueva instancia de Obra con valores ingresados por teclado
-        while True:
-            try:
-                entorno = input("Ingrese el entorno de la obra: ")
-                nombre = input("Ingrese el nombre de la obra: ")
-                # Ingresar otros valores necesarios para crear una obra
-                # Ejemplo de búsqueda de valores relacionados (foreign key)
-                etapa_nombre = input("Ingrese la etapa de la obra: ")
-                etapa = Etapa.get(Etapa.nombre == etapa_nombre)
-                # Crear nueva instancia de Obra
-                nueva_obra = Obra.create(
-                    entorno=entorno,
-                    nombre=nombre,
-                    etapa=etapa,
-                    # Asignar otros campos según la estructura de tu modelo ORM
-                )
-                nueva_obra.save()
-                return nueva_obra
-            except DoesNotExist:
-                print(f"No existe una etapa con el nombre '{etapa_nombre}'. Intente nuevamente.")
+    def obtener_indicadores(cls):
+        # Método para obtener indicadores de las obras existentes en la base de datos SQLite
+        obras = Obra.select()
+        # Ejemplo de obtener indicadores
+        total_obras = obras.count()
+        # Puedes retornar cualquier indicador relevante
+        return total_obras
+    
 
+'''
     @classmethod
     @abstractmethod
     def obtener_indicadores(cls):
@@ -404,5 +395,5 @@ if __name__ == "__main__":
     Implementacion.conectar_db()
     Implementacion.mapear_orm()
     data_set = Implementacion.limpiar_datos(data_set)
-    # Implementacion.cargar_datos(data_set)
+    Implementacion.cargar_datos(data_set)
     Implementacion.nueva_obra()
