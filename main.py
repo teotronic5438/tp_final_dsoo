@@ -1,5 +1,2 @@
-import pandas as pd # type: ignore
-
-archivo_csv = "./observatorio-de-obras-urbanas.csv"
-df = pd.read_csv(archivo_csv, sep=";")
-print("Lucas Nahuel Rey")
+if __name__ == "__main__":
+    print("estoy iniciando el programa")
