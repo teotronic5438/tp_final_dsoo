@@ -92,11 +92,12 @@ class GestionarObra(ABC):
                 df[columna] = pd.to_numeric(df[columna], errors='coerce', downcast=conversiones[columna])
 
             # Relleno los valores nulos (NaN) con el contenido N/A o no disponible (consultado con el profesor)
-            if columna in conversiones.keys():
-                df[columna].fillna(-1, inplace=True)
-            elif columna not in columnas_a_verificar:
-                if df[columna].dtype == "object":
-                    df[columna].fillna("N/A", inplace=True)
+            for columna in df.columns:
+                if columna in conversiones.keys():
+                    df[columna] = df[columna].fillna(-1)
+                elif columna not in columnas_a_verificar:
+                    if df[columna].dtype == "object":
+                        df[columna] = df[columna].fillna("N/A")
 
         # Forzar la conversión de plazo_meses y mano de obra a tipo entero (pandas los hace float por tener textos)
         df["plazo_meses"] = df["plazo_meses"].astype(int)
@@ -110,8 +111,8 @@ class GestionarObra(ABC):
                 df[columna] = df[columna].str.capitalize()
 
         # Muestra el dataframe limpio
-        print(df['financiamiento'].unique())
-        print(df['comuna'].unique())
+        # print(df['financiamiento'].unique())
+        # print(df['comuna'].unique())
         df.to_csv('./csv_limpiado.csv', index=False, sep=';')
         return df
     
@@ -149,6 +150,61 @@ class GestionarObra(ABC):
                 if pd.notna(valor):  # Verificar que el valor no sea NaN
                     clase_orm = clases_orm[campo]
                     clase_orm.create(nombre=valor)
+
+        # LLeno ahora la tabla principal recorriendo las filas del csv
+        for elem in df.values:
+            tipo_etapa = Etapa.get(Etapa.nombre == elem[3])
+            tipo_tipo = Tipo.get(Tipo.nombre == elem[4])
+            tipo_area = AreaResponsable.get(AreaResponsable.nombre == elem[5])
+            tipo_comuna = Comuna.get(Comuna.nombre == elem[8])
+            tipo_barrio = Barrio.get(Barrio.nombre == elem[9])
+            tipo_licitacion = LicitacionEmpresa.get(LicitacionEmpresa.nombre == elem[21])
+            tipo_contratacion = ContratacionTipo.get(ContratacionTipo.nombre == elem[23])
+            tipo_financiamiento = Financiamiento.get(Financiamiento.nombre == elem[35])
+            try:
+                pass
+                Obra.create(
+                    id=elem[0],
+                    entorno=elem[1],
+                    nombre=elem[2],
+                    etapa=tipo_etapa,
+                    tipo=tipo_tipo,
+                    area_responsable=tipo_area,
+                    descripcion=elem[6],
+                    monto_contrato=elem[7],
+                    comuna=tipo_comuna,
+                    barrio=tipo_barrio,
+                    direccion=elem[10],
+                    lat=elem[11],
+                    lng=elem[12],
+                    fecha_inicio=elem[13],
+                    fecha_fin_inicial=elem[14],
+                    plazo_meses=elem[15],
+                    porcentaje_avance=elem[16],
+                    imagen_1=elem[17],
+                    imagen_2=elem[18],
+                    imagen_3=elem[19],
+                    imagen_4=elem[20],
+                    licitacion_oferta_empresa=tipo_licitacion,
+                    licitacion_anio=elem[22],
+                    contratacion_tipo=tipo_contratacion,
+                    nro_contratacion=elem[24],
+                    cuit_contratista=elem[25],
+                    beneficiarios=elem[26],
+                    mano_obra=elem[27],
+                    compromiso=elem[28],
+                    destacada=elem[29],
+                    ba_elige=elem[30],
+                    link_interno=elem[31],
+                    pliego_descarga=elem[32],
+                    expediente_numero=elem[33],
+                    estudio_ambiental_descarga=elem[34],
+                    financiamiento=tipo_financiamiento
+                )
+            except IntegrityError as e:
+                print("Error al insertar un nuevo registro en la tabla viajes.", e)
+            # print(tipo_etapa)
+
 
         print("Datos cargados en las tablas lookup exitosamente.")
         '''
