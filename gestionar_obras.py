@@ -75,9 +75,25 @@ class GestionarObra(ABC):
 
         # Faltaria agregar limpieza de campos con acento, sin acento, mal escritos
 
-        # replace = {
-        #     "licitacion" : "lictación"
-        # }
+        # Corrección de errores comunes
+        correcciones = {
+            'Licicitación pública': 'Licitacion publica',
+            'Licitacion pública': 'Licitacion publica',
+            'Licitación pública': 'Licitacion publica',
+            'Contrataciín directa' : 'Contratacion Directa',
+            'Ad mantenimiento' : 'Ad. mantenimiento',
+            'Licitación pública nacional' : 'Licitacion publica nacional',
+            'Licitación privada' : 'Licitacion privada',
+            'Licitación privada de obra menor' : 'Licitacion privada de obra menor',
+            'Contratación menor' : 'Contratacion menor',
+            'Licitación pública abreviada.' : 'Licitacion publica abreviada',
+            
+            }
+        columnas_a_normalizar = ['Nombre', 'Descripción']
+
+        for columna in columnas_a_normalizar:
+            df[columna] = df[columna].replace(correcciones)
+
 
         # 2) Hago la conversion de las columnas numéricas segun tipo y relleno
         conversiones = {
