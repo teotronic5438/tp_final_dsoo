@@ -48,12 +48,12 @@ class GestionarObra(ABC):
                 exit()
         else:
             print("La conexión a la BD ya está abierta.")
-        
+
     @classmethod
     @abstractmethod
     def mapear_orm(cls):
         # Me aseguro que la conexión a la bbdd está abierta
-        cls.conectar_db()  
+        cls.conectar_db()
 
         # Método para mapear la estructura de la base de datos utilizando peewee
         # Creamos las tablas correspondientes a las clases del modelo
@@ -65,13 +65,13 @@ class GestionarObra(ABC):
             exit()
         else:
             print("tablas creadas exitosamente")
-        finally: 
+        finally:
             if not sqlite_db.is_closed():
                 # Cerrar la conexión a la base de datos cuando hayamos terminado
                 sqlite_db.close()
 
-            
-    
+
+
     @classmethod
     @abstractmethod
     def limpiar_datos(cls, df):
@@ -101,7 +101,7 @@ class GestionarObra(ABC):
             'Contratación menor': 'Contratacion menor',
             'Licitación pública abreviada.': 'Licitacion publica abreviada'
         }
-        
+
 
         # Columnas a normalizar
         columnas_a_normalizar = ['etapa', 'tipo', 'area_responsable', 'comuna', 'barrio', 'licitacion_oferta_empresa', 'contratacion_tipo', 'financiamiento']
@@ -111,10 +111,10 @@ class GestionarObra(ABC):
             if pd.isna(texto):
                 return texto
             # Convertir a minúsculas y eliminar acentos
-            texto = unidecode(texto.lower())  
-            return correcciones.get(texto, texto).capitalize()  
+            texto = unidecode(texto.lower())
+            return correcciones.get(texto, texto).capitalize()
             # Corregir y capitalizar
-            
+
         # Aplicar la función a las columnas de interés
         for columna in columnas_a_normalizar:
             df[columna] = df[columna].apply(limpiar_texto)
@@ -141,7 +141,7 @@ class GestionarObra(ABC):
             # Relleno los valores nulos (NaN) con el contenido N/A o no disponible (consultado con el profesor)
             for columna in df.columns:
                 if columna in conversiones.keys():
-                    df[columna] = df[columna].fillna(-1)
+                    df[columna] = df[columna].fillna(0)
                 elif columna not in columnas_a_verificar:
                     if df[columna].dtype == "object":
                         df[columna] = df[columna].fillna("no disponible")
@@ -154,21 +154,21 @@ class GestionarObra(ABC):
 
         # Aplico capitalize a todo el DataFrame si es de tipo string
         for columna in df:
-            if df[columna].dtype == 'object': 
+            if df[columna].dtype == 'object':
                 df[columna] = df[columna].str.capitalize()
 
         # Muestra el dataframe limpio
-        # print(df['financiamiento'].unique())
+        # print(df['financiamiento'].unique())  # solo pruebas unitarias
         # print(df['comuna'].unique())
         df.to_csv('./csv_limpiado.csv', index=False, sep=';')
         return df
-    
+
     @classmethod
     @abstractmethod
     def cargar_datos(cls, df):
 
         # Me aseguro que la conexión a la bbdd está abierta
-        cls.conectar_db()  
+        cls.conectar_db()
 
         # Valido si hay datos en la tabla Obra antes de proceder
         if Obra.select().exists():
@@ -176,7 +176,7 @@ class GestionarObra(ABC):
             # Me aseguro que la conexion a la bbdd quede cerrada
             sqlite_db.close()
             return
-        
+
 
         #Obtener los valores únicos (no repetidos) de una columna
         # Diccionario de valores únicos por columna de interés
@@ -309,7 +309,7 @@ class GestionarObra(ABC):
                     new_etapa_nombre = input("ETAPA NUEVA. Confirme la etapa de la obra: ").capitalize()
                     Etapa.create(nombre=new_etapa_nombre)
                     etapa = Etapa.get(Etapa.nombre == new_etapa_nombre)
-                
+
                 new_tipo_nombre = input("Ingrese el tipo de la obra: ").capitalize()
                 try:
                     tipo = Tipo.get(Tipo.nombre == new_tipo_nombre)
@@ -317,7 +317,7 @@ class GestionarObra(ABC):
                     new_tipo_nombre = input("TIPO DE OBRA NUEVA. Confirme el tipo de la obra: ").capitalize()
                     Tipo.create(nombre=new_tipo_nombre)
                     tipo = Tipo.get(Tipo.nombre == new_tipo_nombre)
-                
+
                 new_area_responsable_nombre = input("Ingrese el área responsable de la obra: ").capitalize()
                 try:
                     area_responsable = AreaResponsable.get(AreaResponsable.nombre == new_area_responsable_nombre)
@@ -333,7 +333,7 @@ class GestionarObra(ABC):
                     # En este caso como las comunas estan precargadas las 15, solo debe seleccionar la correcta
                     new_comuna_numero = input("Verifique la comuna ingresada (del 1 al 15)")
                     comuna = Comuna.get(Comuna.nombre == new_comuna_numero)
-                
+
                 new_barrio_nombre = input("Ingrese el barrio de la obra: ").capitalize()
                 try:
                     barrio = Barrio.get(Barrio.nombre == new_barrio_nombre)
@@ -341,7 +341,7 @@ class GestionarObra(ABC):
                     new_barrio_nombre = input("BARRIO NUEVO INGRESADO. Confirme el barrio de la obra: ").capitalize()
                     Barrio.create(nombre = new_barrio_nombre)
                     barrio = Barrio.get(Barrio.nombre == new_barrio_nombre)
-                
+
                 new_licitacion_empresa_nombre = input("Ingrese la empresa de licitación: ").capitalize()
                 try:
                     licitacion_empresa = LicitacionEmpresa.get(LicitacionEmpresa.nombre == new_licitacion_empresa_nombre)
@@ -349,7 +349,7 @@ class GestionarObra(ABC):
                     new_licitacion_empresa_nombre = input("LICITACION NUEVA INGRESADA. Confirme la empresa de licitación: ").capitalize()
                     LicitacionEmpresa.create(nombre = new_licitacion_empresa_nombre)
                     licitacion_empresa = LicitacionEmpresa.get(LicitacionEmpresa.nombre == new_licitacion_empresa_nombre)
-                
+
                 new_contratacion_tipo_nombre = input("Ingrese el tipo de contratación: ").capitalize()
                 try:
                     contratacion_tipo = ContratacionTipo.get(ContratacionTipo.nombre == new_contratacion_tipo_nombre)
@@ -357,7 +357,7 @@ class GestionarObra(ABC):
                     new_contratacion_tipo_nombre = input("TIPO CONTRATACION NUEVO INGRESADO. Confirme el tipo de contratacion: ").capitalize()
                     ContratacionTipo.create(nombre = new_contratacion_tipo_nombre)
                     contratacion_tipo = ContratacionTipo.get(ContratacionTipo.nombre == new_contratacion_tipo_nombre)
-                
+
                 new_financiamiento_nombre = input("Ingrese el financiamiento de la obra: ").capitalize()
                 try:
                     financiamiento = Financiamiento.get(Financiamiento.nombre == new_financiamiento_nombre)
@@ -414,12 +414,12 @@ class GestionarObra(ABC):
             finally:
                 if not sqlite_db.is_closed():
                     sqlite_db.close()
-    
+
     @classmethod
     @abstractmethod
     def obtener_indicadores(cls):
         # Me aseguro que la conexión a la bbdd está abierta
-        cls.conectar_db()  
+        cls.conectar_db()
         try:
             # a) Listado de todas las areas responsables
             query = AreaResponsable.select(AreaResponsable.nombre).distinct().order_by(AreaResponsable.nombre)
@@ -427,22 +427,75 @@ class GestionarObra(ABC):
             print("Muestro las areas responsables: ")
             for area in resultados:
                 print(f"* Nombre: {area.nombre}")
-            
+
             # b) Listado de todos los tipos de Obra
             query = Tipo.select(Tipo.nombre).distinct().order_by(Tipo.nombre)
             resultados = query.execute()
-            print("Muestro los Tipos de Obra: ")
+            print("\nMuestro los Tipos de Obra: ")
             for tipo in resultados:
                 print(f"* Nombre: {tipo.nombre}")
-            
+
             # c) Cantidad de obras que se encuentran en cada etapa
             query = (Etapa.select(Etapa.nombre, fn.Count(Obra.id).alias('cantidad_obras'))
                      .join(Obra, on=(Obra.etapa == Etapa.id))
                      .group_by(Etapa.id))
+
             resultados = [(etapa.nombre, etapa.cantidad_obras) for etapa in query]
-            print("Muestro la cantidad de obras por etapa: ")
+
+            print("\nMuestro la cantidad de obras por etapa: ")
             for etapa, cantidad in resultados:
                 print(f'Etapa: {etapa} | Cantidad de obras: {cantidad}')
+
+            # d) Cantidad de obras y monto total de inversion por tipo de Obra
+            query_tipo_obra = (Tipo
+                   .select(Tipo.nombre,
+                           fn.Count(Obra.id).alias('cantidad_obras'),
+                           fn.Sum(Obra.monto_contrato).alias('monto_total_inversion'))
+                   .join(Obra, on=(Obra.tipo == Tipo.id))
+                   .group_by(Tipo.id))
+
+            resultados_tipo_obra = [(tipo.nombre, tipo.cantidad_obras, tipo.monto_total_inversion) for tipo in query_tipo_obra]
+
+            print("\nMuestro la cantidad de obras y monto total de inversion por tipo de obra: ")
+            for tipo in resultados_tipo_obra:
+                print(f"Tipo de Obra: {tipo[0]}")
+                print(f"Cantidad de Obras: {tipo[1]}")
+                print(f"Monto Total de Inversión: ${tipo[2]}")
+                print("----------------------")
+
+            # e) Listado de todos los barrios pertencientes a las comunas 1, 2, 3
+            comunas_seleccionadas = [1, 2, 3]
+            query = (Barrio
+                     .select(Barrio.nombre, Comuna.nombre)
+                     .join(Obra)
+                     .join(Comuna, on=(Obra.comuna == Comuna.id))
+                     .where(Comuna.nombre.in_(comunas_seleccionadas))
+                    .distinct())
+            # print(query)
+        
+            resultados = [(barrio.nombre) for barrio in query]
+
+            print("\nListado de barrios sin repetir cargados en obras:")
+            for barrio_nombre in resultados:
+                print(f"Barrio: {barrio_nombre}")
+
+
+            '''
+            comunas_seleccionadas = [1, 2, 3]
+            query = (Barrio
+                     .select()
+                     .join(Obra)
+                     .join(Comuna, on=(Obra.comuna == Comuna.id))
+                     .where(Comuna.nombre.in_(comunas_seleccionadas))
+                    .distinct())
+            
+            resultados = [barrio.nombre for barrio in query]
+
+            print("\nListado de barrios sin en comunas 1, 2 y 3:")
+            for barrio_nombre in resultados:
+                print(f"Barrio: {barrio_nombre}")
+            '''
+                
         except OperationalError as e:
             print("Error al obtener datos:", e)
         except AttributeError as e:
@@ -453,7 +506,7 @@ class GestionarObra(ABC):
 
         '''
         # a) Listado de todas las areas responsables
-        # primer diseño, hay que refactorizar
+        # primer diseño, hay que refactorizar para que no se repita OBRA
         try:
             query = AreaResponsable.select(AreaResponsable.nombre).distinct().order_by(AreaResponsable.nombre)
             resultados = query.execute()
@@ -468,7 +521,7 @@ class GestionarObra(ABC):
         finally:    # NOTA, este finaly es de prueba al finalizar indicadores mandarlo al final
             if not sqlite_db.is_closed():
                 sqlite_db.close()
-        
+
         # b) Listado de todos los tipos de Obra
         try:
             query = Tipo.select(Tipo.nombre).distinct().order_by(Tipo.nombre)
@@ -485,14 +538,13 @@ class GestionarObra(ABC):
             if not sqlite_db.is_closed():
                 sqlite_db.close()
         '''
-        
 
 
-        # d) Cantidad de obras y monto total de inversion por tipo de Obra
-        # e) Listado de todos los barrios pertencientes a las comunas 1, 2, 3
+
+
         # f) Cantidad de Obras finalizadas y su monto de inversion en la comunan 1
         # g) Cantidad de obras finalizadas en un plazo menor a 24 meses
-    
+
 
 '''
     @classmethod
