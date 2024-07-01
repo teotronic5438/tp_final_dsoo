@@ -87,12 +87,13 @@ class GestionarObra(ABC):
             'Licitación privada de obra menor' : 'Licitacion privada de obra menor',
             'Contratación menor' : 'Contratacion menor',
             'Licitación pública abreviada.' : 'Licitacion publica abreviada',
-            
+
             }
-        columnas_a_normalizar = ['Nombre', 'Descripción']
+        columnas_a_normalizar = ['contratacion_tipo']
 
         for columna in columnas_a_normalizar:
             df[columna] = df[columna].replace(correcciones)
+            df[columna] = df[columna].replace(correcciones, regex=True)
 
 
         # 2) Hago la conversion de las columnas numéricas segun tipo y relleno
