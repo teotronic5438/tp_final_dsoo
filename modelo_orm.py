@@ -120,23 +120,6 @@ class Obra(BaseModel):
         pass
     class Meta:
         db_table = 'obras'
-'''
-#Creamos las tablas correspondientes a las clases del modelo
-try:
-    sqlite_db.create_tables([Etapa, Tipo, AreaResponsable, Comuna, Barrio, LicitacionEmpresa, ContratacionTipo,Financiamiento, Obra])
-except OperationalError as e:
-    print("Error al crear tablas:", e)
-    sqlite_db.close()
-    exit()
-else:
-    print("tablas creadas exitosamente")
-    
-# Cerrar la conexión a la base de datos cuando hayamos terminado
-sqlite_db.close()
-'''
-
-'''
-class Obra:
 
     def nuevo_proyecto():
         pass
@@ -164,5 +147,3 @@ class Obra:
 
     def rescindir_obra():
         pass
-
-'''

@@ -554,25 +554,6 @@ class GestionarObra(ABC):
         '''
 
 
-
-
-
-
-
-
-'''
-    @classmethod
-    @abstractmethod
-    def obtener_indicadores(cls):
-        # Método para obtener indicadores de las obras existentes en la base de datos SQLite
-        obras = Obra.select()
-        # Ejemplo de obtener indicadores
-        total_obras = obras.count()
-        # Puedes retornar cualquier indicador relevante
-        return total_obras
-
-'''
-
 if __name__ == "__main__":
     print("estoy iniciando el programa")
     class Implementacion(GestionarObra):
