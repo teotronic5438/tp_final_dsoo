@@ -2,15 +2,6 @@ from peewee import *
 
 sqlite_db = SqliteDatabase('obras_urbanas.db')
 
-'''
-# conecto a la base de datos
-try:
-    sqlite_db.connect()
-except OperationalError as e:
-    print("Error al conectar con la BD.", e)
-    exit()
-'''
-
 # Definición de BaseModel
 class BaseModel(Model):
     class Meta:
@@ -20,7 +11,7 @@ class BaseModel(Model):
     Primero defino las tablas lookup
 '''
 
-# Tabla para la etapa de la obra (relacionada por foreign key)
+# Tabla para la etapa de la obra (ver relacion con foreign key)
 class Etapa(BaseModel):
     nombre = CharField(unique=True)
     def __str__(self):
@@ -28,7 +19,7 @@ class Etapa(BaseModel):
     class Meta:
         db_table = 'etapas'
 
-# Tabla para el tipo de obra (relacionada por foreign key)
+# Tabla para el tipo de obra (ver relacion con foreign key)
 class Tipo(BaseModel):
     nombre = CharField(unique=True)
     def __str__(self):
@@ -36,7 +27,7 @@ class Tipo(BaseModel):
     class Meta:
         db_table = 'tipos'
 
-# Tabla para el área responsable (relacionada por foreign key)
+# Tabla para el área responsable (ver relacion con foreign key)
 class AreaResponsable(BaseModel):
     nombre = CharField(unique=True)
     def __str__(self):
@@ -44,7 +35,7 @@ class AreaResponsable(BaseModel):
     class Meta:
         db_table = 'areas_responsables'
 
-# Tabla para la comuna (relacionada por foreign key)
+# Tabla para la comuna (ver relacion con foreign key)
 class Comuna(BaseModel):
     nombre = IntegerField(unique=True)
     def __str__(self):
@@ -52,7 +43,7 @@ class Comuna(BaseModel):
     class Meta:
         db_table = 'comunas'
 
-# Tabla para el barrio (relacionada por foreign key)
+# Tabla para el barrio (ver relacion con foreign key)
 class Barrio(BaseModel):
     nombre = CharField(unique=True)
     def __str__(self):
@@ -60,7 +51,7 @@ class Barrio(BaseModel):
     class Meta:
         db_table = 'barrios'
 
-# Tabla para la empresa de licitación (relacionada por foreign key)
+# Tabla para la empresa de licitación (ver relacion con foreign key)
 class LicitacionEmpresa(BaseModel):
     nombre = CharField(unique=True)
     def __str__(self):
@@ -68,7 +59,7 @@ class LicitacionEmpresa(BaseModel):
     class Meta:
         db_table = 'empresas'
 
-# Tabla para el tipo de contratación (relacionada por foreign key)
+# Tabla para el tipo de contratación (ver relacion con foreign key)
 class ContratacionTipo(BaseModel):
     nombre = CharField(unique=True)
     def __str__(self):
@@ -76,7 +67,7 @@ class ContratacionTipo(BaseModel):
     class Meta:
         db_table = 'contrataciones_tipos'
 
-# Tabla para financiamiento de obra (relacionada por foreign key)
+# Tabla para financiamiento de obra (ver relacion con foreign key)
 class Financiamiento(BaseModel):
     nombre = CharField(unique=True)
     def __str__(self):

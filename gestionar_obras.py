@@ -40,15 +40,21 @@ class GestionarObra(ABC):
     @abstractmethod
     def conectar_db(cls):
         # conecto a la base de datos
-        try:
-            sqlite_db.connect()
-        except OperationalError as e:
-            print("Error al conectar con la BD.", e)
-            exit()
+        if sqlite_db.is_closed():
+            try:
+                sqlite_db.connect()
+            except OperationalError as e:
+                print("Error al conectar con la BD.", e)
+                exit()
+        else:
+            print("La conexión a la BD ya está abierta.")
         
     @classmethod
     @abstractmethod
     def mapear_orm(cls):
+        # Me aseguro que la conexión a la bbdd está abierta
+        cls.conectar_db()  
+
         # Método para mapear la estructura de la base de datos utilizando peewee
         # Creamos las tablas correspondientes a las clases del modelo
         try:
@@ -59,9 +65,12 @@ class GestionarObra(ABC):
             exit()
         else:
             print("tablas creadas exitosamente")
+        finally: 
+            if not sqlite_db.is_closed():
+                # Cerrar la conexión a la base de datos cuando hayamos terminado
+                sqlite_db.close()
+
             
-        # Cerrar la conexión a la base de datos cuando hayamos terminado
-        sqlite_db.close()
     
     @classmethod
     @abstractmethod
@@ -81,6 +90,7 @@ class GestionarObra(ABC):
             'Licicitación pública': 'Licitacion publica',
             'Licitacion pública': 'Licitacion publica',
             'Licicitacion publica' : 'Licitacion publica',
+            'Licicitacion publica ' : 'Licitacion publica',
             'Licitación pública': 'Licitacion publica',
             'Contrataciín directa': 'Contratacion Directa',
             'Licitacion privada obra menor' : 'Licitacion privada de obra menor',
@@ -156,9 +166,15 @@ class GestionarObra(ABC):
     @classmethod
     @abstractmethod
     def cargar_datos(cls, df):
+
+        # Me aseguro que la conexión a la bbdd está abierta
+        cls.conectar_db()  
+
         # Valido si hay datos en la tabla Obra antes de proceder
         if Obra.select().exists():
             print("La tabla Obra ya contiene datos.")
+            # Me aseguro que la conexion a la bbdd quede cerrada
+            sqlite_db.close()
             return
         
 
@@ -205,7 +221,6 @@ class GestionarObra(ABC):
             tipo_contratacion = ContratacionTipo.get(ContratacionTipo.nombre == elem[23])
             tipo_financiamiento = Financiamiento.get(Financiamiento.nombre == elem[35])
             try:
-                pass
                 Obra.create(
                     id=elem[0],
                     entorno=elem[1],
@@ -246,7 +261,11 @@ class GestionarObra(ABC):
                 )
             except IntegrityError as e:
                 print("Error al insertar un nuevo registro en la tabla viajes.", e)
-        print("Datos cargados en las tablas lookup exitosamente.")
+
+        print("Datos cargados en las tablas exitosamente.")
+        # Me aseguro de cerrar la conexion a la BBDD
+        if not sqlite_db.is_closed():
+            sqlite_db.close()
 
     @classmethod
     @abstractmethod
@@ -392,16 +411,87 @@ class GestionarObra(ABC):
                 print(f"Error: {e}. Intente nuevamente.")
             except Exception as e:
                 print(f"Ocurrió un error: {e}. Intente nuevamente.")
+            finally:
+                if not sqlite_db.is_closed():
+                    sqlite_db.close()
     
     @classmethod
     @abstractmethod
     def obtener_indicadores(cls):
-        # Método para obtener indicadores de las obras existentes en la base de datos SQLite
-        obras = Obra.select()
-        # Ejemplo de obtener indicadores
-        total_obras = obras.count()
-        # Puedes retornar cualquier indicador relevante
-        return total_obras
+        # Me aseguro que la conexión a la bbdd está abierta
+        cls.conectar_db()  
+        try:
+            # a) Listado de todas las areas responsables
+            query = AreaResponsable.select(AreaResponsable.nombre).distinct().order_by(AreaResponsable.nombre)
+            resultados = query.execute()
+            print("Muestro las areas responsables: ")
+            for area in resultados:
+                print(f"* Nombre: {area.nombre}")
+            
+            # b) Listado de todos los tipos de Obra
+            query = Tipo.select(Tipo.nombre).distinct().order_by(Tipo.nombre)
+            resultados = query.execute()
+            print("Muestro los Tipos de Obra: ")
+            for tipo in resultados:
+                print(f"* Nombre: {tipo.nombre}")
+            
+            # c) Cantidad de obras que se encuentran en cada etapa
+            query = (Etapa.select(Etapa.nombre, fn.Count(Obra.id).alias('cantidad_obras'))
+                     .join(Obra, on=(Obra.etapa == Etapa.id))
+                     .group_by(Etapa.id))
+            resultados = [(etapa.nombre, etapa.cantidad_obras) for etapa in query]
+            print("Muestro la cantidad de obras por etapa: ")
+            for etapa, cantidad in resultados:
+                print(f'Etapa: {etapa} | Cantidad de obras: {cantidad}')
+        except OperationalError as e:
+            print("Error al obtener datos:", e)
+        except AttributeError as e:
+            print(f"Error de atributo: {e}")
+        finally:
+            if not sqlite_db.is_closed():
+                sqlite_db.close()
+
+        '''
+        # a) Listado de todas las areas responsables
+        # primer diseño, hay que refactorizar
+        try:
+            query = AreaResponsable.select(AreaResponsable.nombre).distinct().order_by(AreaResponsable.nombre)
+            resultados = query.execute()
+        except OperationalError as e:
+            print("Error al obtener áreas responsables:", e)
+        except AttributeError as e:
+            print(f"Error de atributo: {e}")
+        else:
+            print("Muestro las areas responsables: ")
+            for area in resultados:
+                print(f"* Nombre: {area}.")
+        finally:    # NOTA, este finaly es de prueba al finalizar indicadores mandarlo al final
+            if not sqlite_db.is_closed():
+                sqlite_db.close()
+        
+        # b) Listado de todos los tipos de Obra
+        try:
+            query = Tipo.select(Tipo.nombre).distinct().order_by(Tipo.nombre)
+            resultados = query.execute()
+        except OperationalError as e:
+            print("Error al obtener tipos de obra:", e)
+        except AttributeError as e:
+            print(f"Error de atributo: {e}")
+        else:
+            print("Muestro los Tipos de Obra: ")
+            for area in resultados:
+                print(f"* Nombre: {area}.")
+        finally:    # NOTA, este finaly es de prueba al finalizar indicadores mandarlo al final
+            if not sqlite_db.is_closed():
+                sqlite_db.close()
+        '''
+        
+
+
+        # d) Cantidad de obras y monto total de inversion por tipo de Obra
+        # e) Listado de todos los barrios pertencientes a las comunas 1, 2, 3
+        # f) Cantidad de Obras finalizadas y su monto de inversion en la comunan 1
+        # g) Cantidad de obras finalizadas en un plazo menor a 24 meses
     
 
 '''
@@ -427,4 +517,5 @@ if __name__ == "__main__":
     Implementacion.mapear_orm()
     data_set = Implementacion.limpiar_datos(data_set)
     Implementacion.cargar_datos(data_set)
-    Implementacion.nueva_obra()
+    # Implementacion.nueva_obra()
+    Implementacion.obtener_indicadores()
