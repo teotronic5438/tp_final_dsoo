@@ -93,7 +93,7 @@ class GestionarObra(ABC):
 
         for columna in columnas_a_normalizar:
             df[columna] = df[columna].replace(correcciones)
-            df[columna] = df[columna].replace(correcciones, regex=True)
+            #df[columna] = df[columna].replace(correcciones, regex=True)
 
 
         # 2) Hago la conversion de las columnas numéricas segun tipo y relleno
