@@ -1,6 +1,4 @@
 from peewee import *
-from gestionar_obras import *
-# from abc import ABC, abstractmethod
 
 sqlite_db = SqliteDatabase('obras_urbanas.db')
 
