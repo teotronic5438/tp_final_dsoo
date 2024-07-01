@@ -577,6 +577,10 @@ class GestionarObra(ABC):
                 sqlite_db.close()
         '''
 
+def menu():
+    print("Bienvenido al Sistema de Gestion de obra")
+    print("")
+
 
 if __name__ == "__main__":
     print("estoy iniciando el programa")
