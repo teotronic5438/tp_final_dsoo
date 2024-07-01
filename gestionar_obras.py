@@ -542,44 +542,11 @@ class GestionarObra(ABC):
             if not sqlite_db.is_closed():
                 sqlite_db.close()
 
-        '''
-        # a) Listado de todas las areas responsables
-        # primer diseño, hay que refactorizar para que no se repita OBRA
-        try:
-            query = AreaResponsable.select(AreaResponsable.nombre).distinct().order_by(AreaResponsable.nombre)
-            resultados = query.execute()
-        except OperationalError as e:
-            print("Error al obtener áreas responsables:", e)
-        except AttributeError as e:
-            print(f"Error de atributo: {e}")
-        else:
-            print("Muestro las areas responsables: ")
-            for area in resultados:
-                print(f"* Nombre: {area}.")
-        finally:    # NOTA, este finaly es de prueba al finalizar indicadores mandarlo al final
-            if not sqlite_db.is_closed():
-                sqlite_db.close()
-
-        # b) Listado de todos los tipos de Obra
-        try:
-            query = Tipo.select(Tipo.nombre).distinct().order_by(Tipo.nombre)
-            resultados = query.execute()
-        except OperationalError as e:
-            print("Error al obtener tipos de obra:", e)
-        except AttributeError as e:
-            print(f"Error de atributo: {e}")
-        else:
-            print("Muestro los Tipos de Obra: ")
-            for area in resultados:
-                print(f"* Nombre: {area}.")
-        finally:    # NOTA, este finaly es de prueba al finalizar indicadores mandarlo al final
-            if not sqlite_db.is_closed():
-                sqlite_db.close()
-        '''
 
 def menu():
     print("Bienvenido al Sistema de Gestion de obra")
-    print("")
+    print("1) Empezar un nuevo proyecto")
+    print("2)")
 
 
 if __name__ == "__main__":
@@ -592,5 +559,7 @@ if __name__ == "__main__":
     Implementacion.mapear_orm()
     data_set = Implementacion.limpiar_datos(data_set)
     Implementacion.cargar_datos(data_set)
-    # Implementacion.nueva_obra()
-    Implementacion.obtener_indicadores()
+    Implementacion.nueva_obra()
+    # # Implementacion.obtener_indicadores()
+    # proyecto_nuevo = Obra()
+    # proyecto_nuevo.nuevo_proyecto()

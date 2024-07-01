@@ -1,4 +1,6 @@
 from peewee import *
+# from gestionar_obras import *
+# from abc import ABC, abstractmethod
 
 sqlite_db = SqliteDatabase('obras_urbanas.db')
 
@@ -121,29 +123,29 @@ class Obra(BaseModel):
     class Meta:
         db_table = 'obras'
 
-    def nuevo_proyecto():
-        pass
+    # def nuevo_proyecto(self):
+    #     pass
 
-    def iniciar_contratacion():
-        pass
+    # def iniciar_contratacion(self):
+    #     pass
 
-    def adjudicar_obra():
-        pass
+    # def adjudicar_obra(self):
+    #     pass
 
-    def iniciar_obra():
-        pass
+    # def iniciar_obra(self):
+    #     pass
 
-    def actualizar_porcentaje_avance():
-        pass
+    # def actualizar_porcentaje_avance(self):
+    #     pass
 
-    def incrementar_plazo():
-        pass
+    # def incrementar_plazo(self):
+    #     pass
 
-    def incrementar_mano_obra():
-        pass
+    # def incrementar_mano_obra(self):
+    #     pass
 
-    def finalizar_obra():
-        pass
+    # def finalizar_obra(self):
+    #     pass
 
-    def rescindir_obra():
-        pass
+    # def rescindir_obra(self):
+    #     pass
