@@ -3,6 +3,7 @@ from modelo_orm import *
 # Ahora cargo los modulos que preciso para este modulo
 from abc import ABC, abstractmethod
 import pandas as pd
+from unidecode import unidecode
 
 # Clase abstracta para gestionar obras
 class GestionarObra(ABC):
@@ -79,20 +80,34 @@ class GestionarObra(ABC):
         correcciones = {
             'Licicitación pública': 'Licitacion publica',
             'Licitacion pública': 'Licitacion publica',
+            'Licicitacion publica' : 'Licitacion publica',
             'Licitación pública': 'Licitacion publica',
-            'Contrataciín directa' : 'Contratacion Directa',
-            'Ad mantenimiento' : 'Ad. mantenimiento',
-            'Licitación pública nacional' : 'Licitacion publica nacional',
-            'Licitación privada' : 'Licitacion privada',
-            'Licitación privada de obra menor' : 'Licitacion privada de obra menor',
-            'Contratación menor' : 'Contratacion menor',
-            'Licitación pública abreviada.' : 'Licitacion publica abreviada',
-            
-            }
-        columnas_a_normalizar = ['Nombre', 'Descripción']
+            'Contrataciín directa': 'Contratacion Directa',
+            'Licitacion privada obra menor' : 'Licitacion privada de obra menor',
+            'Ad mantenimiento': 'Ad. mantenimiento',
+            'Licitación pública nacional': 'Licitacion publica nacional',
+            'Licitación privada': 'Licitacion privada',
+            'Licitación privada de obra menor': 'Licitacion privada de obra menor',
+            'Contratación menor': 'Contratacion menor',
+            'Licitación pública abreviada.': 'Licitacion publica abreviada'
+        }
+        
 
+        # Columnas a normalizar
+        columnas_a_normalizar = ['etapa', 'tipo', 'area_responsable', 'comuna', 'barrio', 'licitacion_oferta_empresa', 'contratacion_tipo', 'financiamiento']
+
+        # Función para limpiar y corregir texto
+        def limpiar_texto(texto):
+            if pd.isna(texto):
+                return texto
+            # Convertir a minúsculas y eliminar acentos
+            texto = unidecode(texto.lower())  
+            return correcciones.get(texto, texto).capitalize()  
+            # Corregir y capitalizar
+            
+        # Aplicar la función a las columnas de interés
         for columna in columnas_a_normalizar:
-            df[columna] = df[columna].replace(correcciones)
+            df[columna] = df[columna].apply(limpiar_texto)
 
 
         # 2) Hago la conversion de las columnas numéricas segun tipo y relleno
