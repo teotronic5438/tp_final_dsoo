@@ -423,16 +423,16 @@ class GestionarObra(ABC):
         try:
             # a) Listado de todas las areas responsables
             query = AreaResponsable.select(AreaResponsable.nombre).distinct().order_by(AreaResponsable.nombre)
-            resultados = query.execute()
+            resultado_a = query.execute()
             print("Muestro las areas responsables: ")
-            for area in resultados:
+            for area in resultado_a:
                 print(f"* Nombre: {area.nombre}")
 
             # b) Listado de todos los tipos de Obra
             query = Tipo.select(Tipo.nombre).distinct().order_by(Tipo.nombre)
-            resultados = query.execute()
+            resultado_b = query.execute()
             print("\nMuestro los Tipos de Obra: ")
-            for tipo in resultados:
+            for tipo in resultado_b:
                 print(f"* Nombre: {tipo.nombre}")
 
             # c) Cantidad de obras que se encuentran en cada etapa
@@ -440,10 +440,10 @@ class GestionarObra(ABC):
                      .join(Obra, on=(Obra.etapa == Etapa.id))
                      .group_by(Etapa.id))
 
-            resultados = [(etapa.nombre, etapa.cantidad_obras) for etapa in query]
+            resultado_c = [(etapa.nombre, etapa.cantidad_obras) for etapa in query]
 
             print("\nMuestro la cantidad de obras por etapa: ")
-            for etapa, cantidad in resultados:
+            for etapa, cantidad in resultado_c:
                 print(f'Etapa: {etapa} | Cantidad de obras: {cantidad}')
 
             # d) Cantidad de obras y monto total de inversion por tipo de Obra
@@ -454,10 +454,10 @@ class GestionarObra(ABC):
                    .join(Obra, on=(Obra.tipo == Tipo.id))
                    .group_by(Tipo.id))
 
-            resultados_tipo_obra = [(tipo.nombre, tipo.cantidad_obras, tipo.monto_total_inversion) for tipo in query_tipo_obra]
+            resultado_d = [(tipo.nombre, tipo.cantidad_obras, tipo.monto_total_inversion) for tipo in query_tipo_obra]
 
             print("\nMuestro la cantidad de obras y monto total de inversion por tipo de obra: ")
-            for tipo in resultados_tipo_obra:
+            for tipo in resultado_d:
                 print(f"Tipo de Obra: {tipo[0]}")
                 print(f"Cantidad de Obras: {tipo[1]}")
                 print(f"Monto Total de Inversión: ${tipo[2]}")
@@ -473,28 +473,42 @@ class GestionarObra(ABC):
                     .distinct())
             # print(query)
         
-            resultados = [(barrio.nombre) for barrio in query]
-
-            print("\nListado de barrios sin repetir cargados en obras:")
-            for barrio_nombre in resultados:
+            resultado_e = [(barrio.nombre) for barrio in query]
+            print("\nListado de barrios sin repetir en comunas 1, 2, 3:")
+            for barrio_nombre in resultado_e:
                 print(f"Barrio: {barrio_nombre}")
 
+            # f) Cantidad de Obras finalizadas y su monto de inversion en la comunan 1
+            etapa_finalizada = "Finalizada"
 
-            '''
-            comunas_seleccionadas = [1, 2, 3]
-            query = (Barrio
-                     .select()
-                     .join(Obra)
-                     .join(Comuna, on=(Obra.comuna == Comuna.id))
-                     .where(Comuna.nombre.in_(comunas_seleccionadas))
-                    .distinct())
-            
-            resultados = [barrio.nombre for barrio in query]
+            query = (Obra
+                    .select(fn.COUNT(Obra.id).alias('cantidad_obras'), fn.SUM(Obra.monto_contrato).alias('monto_inversion'))
+                    .join(Comuna, on=(Obra.comuna == Comuna.id))
+                    .join(Etapa, on=(Obra.etapa == Etapa.id))
+                    .where((Comuna.nombre == "1") & (Etapa.nombre == etapa_finalizada))
+                    .group_by(Comuna.id))
+            # print(query)
 
-            print("\nListado de barrios sin en comunas 1, 2 y 3:")
-            for barrio_nombre in resultados:
-                print(f"Barrio: {barrio_nombre}")
-            '''
+            resultado_f = query.dicts().get()
+            print("\nCantidad de Obras finalizadas y su monto de inversion en la comunan 1")
+            print(f"* Cantidad de obras finalizadas en la comuna 1: {resultado_f['cantidad_obras']}")
+            print(f"* Monto total de inversión en la comuna 1: {resultado_f['monto_inversion']}")
+
+            # g) Cantidad de obras finalizadas en un plazo menor a 24 meses
+            etapa_finalizada = "Finalizada"
+
+            # Consulta en Peewee ORM
+            query = (Obra
+                    .select(fn.COUNT(Obra.id).alias('cantidad_obras'))
+                    .join(Etapa, on=(Obra.etapa == Etapa.id))
+                    .where((Etapa.nombre == etapa_finalizada) & (Obra.plazo_meses < 24)
+                    ))
+            # print(query)
+
+            resultado_g = query.dicts().get()
+
+            # Imprimir los resultados
+            print(f"\n* Cantidad de obras finalizadas en un plazo menor a 24 meses: {resultado_g['cantidad_obras']}")
                 
         except OperationalError as e:
             print("Error al obtener datos:", e)
@@ -542,8 +556,8 @@ class GestionarObra(ABC):
 
 
 
-        # f) Cantidad de Obras finalizadas y su monto de inversion en la comunan 1
-        # g) Cantidad de obras finalizadas en un plazo menor a 24 meses
+
+
 
 
 '''
