@@ -507,8 +507,32 @@ class GestionarObra(ABC):
 
             resultado_g = query.dicts().get()
 
-            # Imprimir los resultados
             print(f"\n* Cantidad de obras finalizadas en un plazo menor a 24 meses: {resultado_g['cantidad_obras']}")
+
+            # h) Porcentaje total de obras finalizadas
+            total_obras = Obra.select().count()
+            obras_finalizadas = Obra.select().where(Obra.porcentaje_avance == 100).count()
+
+            porcentaje_finalizadas = (obras_finalizadas / total_obras) * 100 if total_obras > 0 else 0
+
+            print(f"\n* Porcentaje total de obras finalizadas: {porcentaje_finalizadas:.2f}%")
+
+            # i) Cantidad total de mano de obra empleada
+            total_mano_obra = (Obra
+                   .select(fn.SUM(Obra.mano_obra).alias('total_mano_obra'))
+                   .where(Obra.mano_obra > 0)
+                   .scalar())
+
+            print(f"\n* Cantidad total de mano de obra empleada: {total_mano_obra}")
+
+            # j) Monto total de inversion
+            total_inversion = (Obra
+                   .select(fn.SUM(Obra.monto_contrato).alias('total_inversion'))
+                   .where(Obra.monto_contrato > 0)
+                   .scalar())
+
+            print(f"\n* Monto total de inversión en obras: {total_inversion:.2f}")
+
                 
         except OperationalError as e:
             print("Error al obtener datos:", e)
