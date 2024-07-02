@@ -121,8 +121,21 @@ class Obra(BaseModel):
     class Meta:
         db_table = 'obras'
 
-    def nuevo_proyecto(self):
-        pass
+    def nuevo_proyecto(self, registro):
+        # self.etapa = "Proyecto"
+        try:
+            # Intenta obtener la instancia de Etapa con nombre "Proyecto"
+            self.etapa = Etapa.get(Etapa.nombre == "Proyecto")
+        except DoesNotExist:
+            # Si no existe, crea una nueva instancia de Etapa y guárdala
+            self.etapa = Etapa.create(nombre="Proyecto")
+            print(f"Etapa 'Proyecto' creada.")
+            
+        print(f"Obra creada exitosamente.")
+        registro.save()
+        # print("Elija uno de loas barrios existentes")
+        # self.tipo = input("Ingrese el barrio")
+        # registro.save()
 
     def iniciar_contratacion(self):
         pass

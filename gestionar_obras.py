@@ -265,13 +265,136 @@ class GestionarObra(ABC):
     @classmethod
     @abstractmethod
     def nueva_obra(cls):
-        entorno = input("Ingrese el entorno de la obra: ")
-        nombre = input("Ingrese el nombre de la obra: ")
-        tipo = input("Ingrese el tipo de obra: ")
-        area_responsable = input("Ingrese el área responsable: ")
-        descripcion = input("Ingrese la descripción: ")
-        monto_contrato = float(input("Ingrese el monto del contrato: "))
-        
+        entorno = input("Ingrese el entorno de la obra: ").capitalize()
+        entorno = cls.verificando_texto(entorno)
+        nombre = input("Ingrese el nombre de la obra: ").capitalize()
+        nombre = cls.verificando_texto(nombre)
+        etapa = input('Ingrese la etapa de la obra: ').capitalize()             #FUNCION # tabla
+        etapa = cls.verificando_texto(etapa)
+        tipo = input("Ingrese el tipo de obra: ").capitalize()                  #FUNCION # tabla
+        tipo = cls.verificando_texto(tipo)
+        area_responsable = input("Ingrese el área responsable: ").capitalize()  #FUNCION # tabla
+        area_responsable = cls.verificando_texto(area_responsable)
+        descripcion = input("Ingrese la descripción: ").capitalize()
+        descripcion = cls.verificando_texto(descripcion)
+        monto_contrato = input("Ingrese el monto del contrato: ")
+        monto_contrato = cls.verificando_flotante(monto_contrato)
+        # Validación de Comuna      # tabla
+        while True:
+            comuna_nombre = input("Ingrese la comuna: ").capitalize()
+            comuna_nombre = cls.verificando_entero(comuna_nombre)
+            comuna, created = Comuna.get_or_create(nombre=comuna_nombre)
+            if created:
+                print(f"Comuna '{comuna_nombre}' creada.")
+            break
+        # Validación de Barrio                                                  #FUNCION# tabla
+        while True:
+            barrio_nombre = input("Ingrese el barrio: ").capitalize()
+            barrio_nombre = cls.verificando_texto(barrio_nombre)
+            barrio, created = Barrio.get_or_create(nombre=barrio_nombre)
+            if created:
+                print(f"Barrio '{barrio_nombre}' creado.")
+            break
+        direccion = input("Ingrese la dirección: ").capitalize()
+        direccion = cls.verificando_texto(direccion)
+        lat = input("Ingrese la latitud: ").capitalize()
+        lat = cls.verificando_texto(lat)
+        lng = input("Ingrese la longitud: ").capitalize()
+        lng = cls.verificando_texto(lng)
+        fecha_inicio = input("Ingrese la fecha de inicio (dd-mm-yyyy): ")                #FUNCION
+        fecha_inicio = cls.verificando_texto(fecha_inicio)  # nota ver fecha EXPREG
+        fecha_fin_inicial = input("Ingrese la fecha de fin inicial (dd-mm-yyyy): ")     #FUNCION
+        fecha_fin_inicial = cls.verificando_texto(fecha_fin_inicial)
+        plazo_meses = input("Ingrese el plazo en meses (entero): ")                #FUNCION
+        plazo_meses = cls.verificando_entero(plazo_meses)
+        porcentaje_avance = input("Ingrese el porcentaje de avance de la obra: ")  #FUNCION
+        porcentaje_avance = cls.verificando_flotante(porcentaje_avance)
+        imagen_1 = "N/a"
+        imagen_2 = "N/a"
+        imagen_3 = "N/a"
+        imagen_4 = "N/a"
+        # Validación de LicitacionEmpresa                                               #FUNCION
+        while True:
+            empresa_nombre = input("Ingrese la empresa de la licitación: ").capitalize()
+            empresa_nombre = cls.verificando_texto(empresa_nombre)
+            empresa, created = LicitacionEmpresa.get_or_create(nombre=empresa_nombre)
+            if created:
+                print(f"Empresa '{empresa_nombre}' creada.")
+            break
+        licitacion_anio = input("Ingrese el año de licitacion(ejemplo: 2024): ")
+        licitacion_anio = cls.verificando_entero(licitacion_anio)
+
+        # Validación de ContratacionTipo                                                #FUNCION
+        while True:
+            contratacion_tipo_nombre = input("Ingrese el tipo de contratación: ").capitalize()
+            contratacion_tipo_nombre = cls.verificando_texto(contratacion_tipo_nombre)
+            contratacion_tipo, created = ContratacionTipo.get_or_create(nombre=contratacion_tipo_nombre)
+            if created:
+                print(f"Tipo de contratación '{contratacion_tipo_nombre}' creado.")
+            break
+        nro_contratacion = input("Ingrese el número de contratación: ").capitalize()
+        nro_contratacion = cls.verificando_texto(nro_contratacion)
+        cuit_contratista = input("Ingrese el CUIT del contratista: ").capitalize()
+        cuit_contratista = cls.verificando_texto(cuit_contratista)      # pasar a numero
+        beneficiarios = input("Ingrese quienes seran los beneficiarios: ").capitalize()
+        beneficiarios = cls.verificando_texto(beneficiarios)    
+        mano_obra = input("Ingrese la cantidad de mano de obra (entero): ")            #FUNCION
+        mano_obra = cls.verificando_entero(mano_obra)
+        compromiso = input("Ingrese el compromiso: ").capitalize()
+        compromiso = cls.verificando_texto(compromiso)
+        destacada = input("Es una obra destacada? (si/no): ").lower()                       #FUNCION
+        destacada = cls.verificando_texto(destacada)
+        ba_elige = input("Es una obra de BA Elige? (si/no): ").lower()
+        ba_elige = cls.verificando_texto(ba_elige)
+        link_interno = "link no disponible"
+        pliego_descarga = "link de pliego no disponible"
+        expediente_numero = input("Ingrese el número del expediente: ").capitalize()        #FUNCION
+        expediente_numero = cls.verificando_texto(expediente_numero)
+        estudio_ambiental_descarga = "link de estudio ambiental no disponible"
+        financiamiento = input("Ingrese la empresa que financia: ").capitalize()            #FUNCION
+        financiamiento = cls.verificando_texto(financiamiento)
+
+        # Creación de la nueva obra
+        nueva_obra = Obra.create(
+            entorno=entorno,
+            nombre=nombre,
+            etapa=etapa,
+            tipo=tipo,
+            area_responsable=area_responsable,
+            descripcion=descripcion,
+            monto_contrato=monto_contrato,
+            comuna=comuna,
+            barrio=barrio,
+            direccion=direccion,
+            lat=lat,
+            lng=lng,
+            fecha_inicio=fecha_inicio,
+            fecha_fin_inicial=fecha_fin_inicial,
+            plazo_meses=plazo_meses,
+            porcentaje_avance=porcentaje_avance,
+            imagen_1=imagen_1,
+            imagen_2=imagen_2,
+            imagen_3=imagen_3,
+            imagen_4=imagen_4,
+            licitacion_oferta_empresa=empresa,
+            licitacion_anio=licitacion_anio,
+            contratacion_tipo=contratacion_tipo,
+            nro_contratacion=nro_contratacion,
+            cuit_contratista=cuit_contratista,
+            beneficiarios=beneficiarios,
+            mano_obra=mano_obra,
+            compromiso=compromiso,
+            destacada=destacada,
+            ba_elige=ba_elige,
+            link_interno=link_interno,
+            pliego_descarga=pliego_descarga,
+            expediente_numero=expediente_numero,
+            estudio_ambiental_descarga=estudio_ambiental_descarga,
+            financiamiento=financiamiento
+        )
+        nueva_obra.save()
+        return nueva_obra
+
     @classmethod
     @abstractmethod
     def obtener_indicadores(cls):
@@ -416,9 +539,7 @@ if __name__ == "__main__":
     Implementacion.mapear_orm()
     data_set = Implementacion.limpiar_datos(data_set)
     Implementacion.cargar_datos(data_set)
-    # Implementacion.nueva_obra()
     Implementacion.obtener_indicadores()
-    # proyecto_nuevo = Obra()
-    # # proyecto_nuevo.nuevo_proyecto()
-    # nueva_obra = GestionarObra.nueva_obra()
-    # nueva_obra.save()
+    # Implementacion.nueva_obra()
+    proyecto_nuevo = GestionarObra.nueva_obra()
+    proyecto_nuevo.nuevo_proyecto(proyecto_nuevo)
