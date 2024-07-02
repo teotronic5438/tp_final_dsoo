@@ -11,6 +11,37 @@ class GestionarObra(ABC):
 
     @classmethod
     @abstractmethod
+    def verificando_texto(cls, texto):
+        while True:
+            # Verifico si el texto ingresado no está vacío
+            if texto.strip():  
+                return texto.capitalize()
+            else:
+                print("El texto no puede estar vacio")
+                texto = input("Ingreselo nuevamente: ")
+    @classmethod
+    @abstractmethod
+    def verificando_entero(cls, numero):
+        while True:
+            try:
+                opcion = int(numero)
+                return opcion
+            except ValueError:
+                print("El valor ingresado no es un numero.")
+                numero = input("Ingreselo nuevamente: ")
+    @classmethod
+    @abstractmethod
+    def verificando_flotante(cls, numero):
+        while True:
+            try:
+                opcion = float(numero)
+                return opcion
+            except ValueError:
+                print("El valor ingresado no es un numero.")
+                numero = input("Ingreselo nuevamente: ")
+
+    @classmethod
+    @abstractmethod
     def extraer_datos(cls):
         # Usamos una excepcion en caso de no poder leer el csv con pandas
         try:
@@ -77,50 +108,35 @@ class GestionarObra(ABC):
     def limpiar_datos(cls, df):
         # 1) Primero vamos a limpiar los campos vacios de las columnas necesarias para los indicadores
 
-        # NOTA A PROFESOR: mano_obra me baja de 1325 a 335 registros y elimina una cantidad importante de datos
-        columnas_a_verificar = ['etapa', 'tipo', 'area_responsable', 'monto_contrato', 'comuna', 'barrio', 'plazo_meses', 'porcentaje_avance', 'fecha_inicio', 'fecha_fin_inicial', 'mano_obra']
-
-        #Eliminar valores NA o NaN (nulos o no disponibles) de las columnas usadas para los indicadores
-        df.dropna(subset=columnas_a_verificar, axis = 0, inplace = True)
-
-        # Faltaria agregar limpieza de campos con acento, sin acento, mal escritos
-
-        # Corrección de errores comunes
-        correcciones = {
-            'Licicitación pública': 'Licitacion publica',
-            'Licitacion pública': 'Licitacion publica',
-            'Licicitacion publica' : 'Licitacion publica',
-            'Licicitacion publica ' : 'Licitacion publica',
-            'Licitación pública': 'Licitacion publica',
-            'Contrataciín directa': 'Contratacion Directa',
-            'Licitacion privada obra menor' : 'Licitacion privada de obra menor',
-            'Ad mantenimiento': 'Ad. mantenimiento',
-            'Licitación pública nacional': 'Licitacion publica nacional',
-            'Licitación privada': 'Licitacion privada',
-            'Licitación privada de obra menor': 'Licitacion privada de obra menor',
-            'Contratación menor': 'Contratacion menor',
-            'Licitación pública abreviada.': 'Licitacion publica abreviada'
-        }
+        # NOTA A PROFESOR: mano_obra me baja de 1325 aprox 301 registros y elimina una cantidad importante de datos
+        # datos nulos, textos, 0 y vacios
+        # Columnas a verificar y limpiar
+        columnas_a_verificar = ['etapa', 'tipo', 'area_responsable', 'monto_contrato', 'comuna', 'barrio', 'plazo_meses',
+                                'porcentaje_avance', 'licitacion_anio', 'fecha_inicio', 'fecha_fin_inicial', 'mano_obra']
+        # print(df)
+        # Eliminar filas con NaN en columnas a verificar
+        df.dropna(subset=columnas_a_verificar, inplace=True)
 
 
-        # Columnas a normalizar
-        columnas_a_normalizar = ['etapa', 'tipo', 'area_responsable', 'comuna', 'barrio', 'licitacion_oferta_empresa', 'contratacion_tipo', 'financiamiento']
+        # Columnas numéricas que deben limpiarse de texto y valores cero
+        columnas_numericas = ['monto_contrato', 'comuna', 'plazo_meses', 'porcentaje_avance', 'licitacion_anio', 'mano_obra']
 
-        # Función para limpiar y corregir texto
-        def limpiar_texto(texto):
-            if pd.isna(texto):
-                return texto
-            # Convertir a minúsculas y eliminar acentos
-            texto = unidecode(texto.lower())
-            return correcciones.get(texto, texto).capitalize()
-            # Corregir y capitalizar
+        # Convertir columnas específicas a tipo numérico, forzando errores como NaN
+        for col in columnas_numericas:
+            df[col] = pd.to_numeric(df[col].astype(str).str.replace(',', ''), errors='coerce')
 
-        # Aplicar la función a las columnas de interés
-        for columna in columnas_a_normalizar:
-            df[columna] = df[columna].apply(limpiar_texto)
+        # Eliminar filas con NaN o valores cero en columnas numéricas
+        df = df[~(df[columnas_numericas].isna() | (df[columnas_numericas] == 0)).any(axis=1)]
 
 
-        # 2) Hago la conversion de las columnas numéricas segun tipo y relleno
+
+        # Conversion forzada, ya no es necesario texto en numeros limpiado
+        df.loc[:, "plazo_meses"] = df["plazo_meses"].astype(int)  # NO USADO POR NO FUNCIONAR
+        # df["plazo_meses"] = df["plazo_meses"].astype(int)
+        df.loc[:, "mano_obra"] = df["mano_obra"].astype(int)
+        # df["mano_obra"] = df["mano_obra"].astype(int)
+
+        # 2) Hago el rellenado de datos que no quiero eliminar
         conversiones = {
             "id": "integer",
             "monto_contrato": "float",
@@ -130,36 +146,14 @@ class GestionarObra(ABC):
             "licitacion_anio": "integer",
             "mano_obra": "integer"
         }
+        for columna in df.columns:
+            if columna in conversiones.keys():
+                df.loc[:, columna] = df[columna].fillna(0)
+            elif columna not in columnas_a_verificar:
+                if df[columna].dtype == "object":
+                    df.loc[:, columna] = df[columna].fillna("no disponible")
 
-
-        # 2.1) Itero las columnas del DataFrame para el rellenado
-        for columna in df:
-            # Convierto las columnas numéricas según el tipo especificado en conversiones
-            if columna in conversiones:
-                df[columna] = pd.to_numeric(df[columna], errors='coerce', downcast=conversiones[columna])
-
-            # Relleno los valores nulos (NaN) con el contenido N/A o no disponible (consultado con el profesor)
-            for columna in df.columns:
-                if columna in conversiones.keys():
-                    df[columna] = df[columna].fillna(0)
-                elif columna not in columnas_a_verificar:
-                    if df[columna].dtype == "object":
-                        df[columna] = df[columna].fillna("no disponible")
-
-        # Forzar la conversión de plazo_meses y mano de obra a tipo entero (pandas los hace float por tener textos)
-        df["plazo_meses"] = df["plazo_meses"].astype(int)
-        df["mano_obra"] = df["mano_obra"].astype(int)
-        df["comuna"] = df["comuna"].astype(int)
-        df["licitacion_anio"] = df["licitacion_anio"].astype(int)
-
-        # Aplico capitalize a todo el DataFrame si es de tipo string
-        for columna in df:
-            if df[columna].dtype == 'object':
-                df[columna] = df[columna].str.capitalize()
-
-        # Muestra el dataframe limpio
-        # print(df['financiamiento'].unique())  # solo pruebas unitarias
-        # print(df['comuna'].unique())
+        # print(df['plazo_meses'])
         df.to_csv('./csv_limpiado.csv', index=False, sep=';')
         return df
 
@@ -173,7 +167,6 @@ class GestionarObra(ABC):
         # Valido si hay datos en la tabla Obra antes de proceder
         if Obra.select().exists():
             print("La tabla Obra ya contiene datos.")
-            # Me aseguro que la conexion a la bbdd quede cerrada
             sqlite_db.close()
             return
 
@@ -267,154 +260,18 @@ class GestionarObra(ABC):
         if not sqlite_db.is_closed():
             sqlite_db.close()
 
+
+
     @classmethod
     @abstractmethod
     def nueva_obra(cls):
-        # Método para crear una nueva instancia de Obra con valores ingresados por teclado
-        while True:
-            try:
-                new_entorno = input("Ingrese el entorno de la obra: ")
-                new_nombre = input("Ingrese el nombre de la obra: ")
-                new_descripcion = input("Ingrese la descripción de la obra: ")
-                new_monto_contrato = float(input("Ingrese el monto del contrato: "))
-                new_direccion = input("Ingrese la dirección de la obra: ")
-                new_lat = input("Ingrese la latitud: ")
-                new_lng = input("Ingrese la longitud: ")
-                new_fecha_inicio = input("Ingrese la fecha de inicio (dd-mm-yyyy): ")
-                new_fecha_fin_inicial = input("Ingrese la fecha de fin inicial (dd-mm-yyyy): ")
-                new_plazo_meses = int(input("Ingrese el plazo en meses (entero): "))
-                new_porcentaje_avance = float(input("Ingrese el porcentaje de avance de la obra: "))
-                new_imagen_1 = "N/a"
-                new_imagen_2 = "N/a"
-                new_imagen_3 = "N/a"
-                new_imagen_4 = "N/a"
-                new_licitacion_anio = int(input("Ingrese el año de licitacion(ejemplo: 2024): "))
-                new_nro_contratacion = input("Ingrese el número de contratación: ")
-                new_cuit_contratista = input("Ingrese el CUIT del contratista: ")
-                new_beneficiarios = input("Ingrese quienes seran los beneficiarios: ")
-                new_mano_obra = int(input("Ingrese la cantidad de mano de obra (entero): "))
-                new_compromiso = input("Ingrese el compromiso: ")
-                new_destacada = input("Es una obra destacada? (si/no): ").lower()
-                new_ba_elige = input("Es una obra de BA Elige? (si/no): ").lower()
-                new_link_interno = "link no disponible"
-                new_pliego_descarga = "link de pliego no disponible"
-                new_expediente_numero = input("Ingrese el número del expediente: ")
-                new_estudio_ambiental_descarga = "link de estudio ambiental no disponible"
-
-                # Ingresar otros valores necesarios para crear una obra
-                new_etapa_nombre = input("Ingrese la etapa de la obra: ").capitalize()
-                try:
-                    etapa = Etapa.get(Etapa.nombre == new_etapa_nombre)
-                except DoesNotExist:
-                    new_etapa_nombre = input("ETAPA NUEVA. Confirme la etapa de la obra: ").capitalize()
-                    Etapa.create(nombre=new_etapa_nombre)
-                    etapa = Etapa.get(Etapa.nombre == new_etapa_nombre)
-
-                new_tipo_nombre = input("Ingrese el tipo de la obra: ").capitalize()
-                try:
-                    tipo = Tipo.get(Tipo.nombre == new_tipo_nombre)
-                except DoesNotExist:
-                    new_tipo_nombre = input("TIPO DE OBRA NUEVA. Confirme el tipo de la obra: ").capitalize()
-                    Tipo.create(nombre=new_tipo_nombre)
-                    tipo = Tipo.get(Tipo.nombre == new_tipo_nombre)
-
-                new_area_responsable_nombre = input("Ingrese el área responsable de la obra: ").capitalize()
-                try:
-                    area_responsable = AreaResponsable.get(AreaResponsable.nombre == new_area_responsable_nombre)
-                except DoesNotExist:
-                    new_area_responsable_nombre = input("AREA RESPONSABLE NUEVO. Confirme el area de la obra: ").capitalize()
-                    AreaResponsable.create(nombre=new_area_responsable_nombre)
-                    area_responsable = AreaResponsable.get(AreaResponsable.nombre == new_area_responsable_nombre)
-
-                new_comuna_numero = int(input("Ingrese la comuna de la obra: "))
-                try:
-                    comuna = Comuna.get(Comuna.nombre == new_comuna_numero)
-                except DoesNotExist:
-                    # En este caso como las comunas estan precargadas las 15, solo debe seleccionar la correcta
-                    new_comuna_numero = input("Verifique la comuna ingresada (del 1 al 15)")
-                    comuna = Comuna.get(Comuna.nombre == new_comuna_numero)
-
-                new_barrio_nombre = input("Ingrese el barrio de la obra: ").capitalize()
-                try:
-                    barrio = Barrio.get(Barrio.nombre == new_barrio_nombre)
-                except DoesNotExist:
-                    new_barrio_nombre = input("BARRIO NUEVO INGRESADO. Confirme el barrio de la obra: ").capitalize()
-                    Barrio.create(nombre = new_barrio_nombre)
-                    barrio = Barrio.get(Barrio.nombre == new_barrio_nombre)
-
-                new_licitacion_empresa_nombre = input("Ingrese la empresa de licitación: ").capitalize()
-                try:
-                    licitacion_empresa = LicitacionEmpresa.get(LicitacionEmpresa.nombre == new_licitacion_empresa_nombre)
-                except DoesNotExist:
-                    new_licitacion_empresa_nombre = input("LICITACION NUEVA INGRESADA. Confirme la empresa de licitación: ").capitalize()
-                    LicitacionEmpresa.create(nombre = new_licitacion_empresa_nombre)
-                    licitacion_empresa = LicitacionEmpresa.get(LicitacionEmpresa.nombre == new_licitacion_empresa_nombre)
-
-                new_contratacion_tipo_nombre = input("Ingrese el tipo de contratación: ").capitalize()
-                try:
-                    contratacion_tipo = ContratacionTipo.get(ContratacionTipo.nombre == new_contratacion_tipo_nombre)
-                except DoesNotExist:
-                    new_contratacion_tipo_nombre = input("TIPO CONTRATACION NUEVO INGRESADO. Confirme el tipo de contratacion: ").capitalize()
-                    ContratacionTipo.create(nombre = new_contratacion_tipo_nombre)
-                    contratacion_tipo = ContratacionTipo.get(ContratacionTipo.nombre == new_contratacion_tipo_nombre)
-
-                new_financiamiento_nombre = input("Ingrese el financiamiento de la obra: ").capitalize()
-                try:
-                    financiamiento = Financiamiento.get(Financiamiento.nombre == new_financiamiento_nombre)
-                except DoesNotExist:
-                    new_financiamiento_nombre = input("TIPO CONTRATACION NUEVO INGRESADO. Confirme el tipo de contratacion: ").capitalize()
-                    Financiamiento.create(nombre = new_financiamiento_nombre)
-                    Financiamiento.get(Financiamiento.nombre == new_financiamiento_nombre)
-                    financiamiento = Financiamiento.get(Financiamiento.nombre == new_financiamiento_nombre)
-
-                # Crear nueva instancia de Obra
-                nueva_obra = Obra.create(
-                    entorno=new_entorno,
-                    nombre=new_nombre,
-                    descripcion=new_descripcion,
-                    monto_contrato=new_monto_contrato,
-                    direccion=new_direccion,
-                    lat=new_lat,
-                    lng=new_lng,
-                    fecha_inicio=new_fecha_inicio,
-                    fecha_fin_inicial=new_fecha_fin_inicial,
-                    plazo_meses=new_plazo_meses,
-                    porcentaje_avance=new_porcentaje_avance,
-                    imagen_1=new_imagen_1,
-                    imagen_2=new_imagen_2,
-                    imagen_3=new_imagen_3,
-                    imagen_4=new_imagen_4,
-                    licitacion_anio = new_licitacion_anio,
-                    nro_contratacion=new_nro_contratacion,
-                    cuit_contratista=new_cuit_contratista,
-                    beneficiarios=new_beneficiarios,
-                    mano_obra=new_mano_obra,
-                    compromiso=new_compromiso,
-                    destacada=new_destacada,
-                    ba_elige=new_ba_elige,
-                    link_interno=new_link_interno,
-                    pliego_descarga=new_pliego_descarga,
-                    expediente_numero=new_expediente_numero,
-                    estudio_ambiental_descarga=new_estudio_ambiental_descarga,
-                    etapa=etapa,
-                    tipo=tipo,
-                    area_responsable=area_responsable,
-                    comuna=comuna,
-                    barrio=barrio,
-                    licitacion_oferta_empresa=licitacion_empresa,
-                    contratacion_tipo=contratacion_tipo,
-                    financiamiento=financiamiento
-                )
-                nueva_obra.save()
-                return nueva_obra
-            except DoesNotExist as e:
-                print(f"Error: {e}. Intente nuevamente.")
-            except Exception as e:
-                print(f"Ocurrió un error: {e}. Intente nuevamente.")
-            finally:
-                if not sqlite_db.is_closed():
-                    sqlite_db.close()
-
+        entorno = input("Ingrese el entorno de la obra: ")
+        nombre = input("Ingrese el nombre de la obra: ")
+        tipo = input("Ingrese el tipo de obra: ")
+        area_responsable = input("Ingrese el área responsable: ")
+        descripcion = input("Ingrese la descripción: ")
+        monto_contrato = float(input("Ingrese el monto del contrato: "))
+        
     @classmethod
     @abstractmethod
     def obtener_indicadores(cls):
@@ -559,7 +416,7 @@ if __name__ == "__main__":
     Implementacion.mapear_orm()
     data_set = Implementacion.limpiar_datos(data_set)
     Implementacion.cargar_datos(data_set)
-    Implementacion.nueva_obra()
+    # Implementacion.nueva_obra()
     Implementacion.obtener_indicadores()
     # proyecto_nuevo = Obra()
     # # proyecto_nuevo.nuevo_proyecto()
